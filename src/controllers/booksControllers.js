@@ -5,11 +5,10 @@ const BooksController = {};
 
 BooksController.create = async (req, res, next) => {
   try {
-    const { title, cover, pages, stocks, createdAt, updatedAt, deletedAt } =
-      req.body;
+    const { title, pages, summary, stocks } = req.body;
 
     //cek falsy input
-    if (!title || !content) {
+    if (!title || !pages || !summary || !stocks) {
       // bad request
       throw {
         name: errorName.BAD_REQUEST,
@@ -19,12 +18,12 @@ BooksController.create = async (req, res, next) => {
 
     const book = new Books({
       title,
-      cover,
       pages,
+      summary,
       stocks,
-      createdAt,
-      updatedAt,
-      deletedAt,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null,
     });
 
     await book.save();

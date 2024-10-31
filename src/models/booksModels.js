@@ -5,16 +5,16 @@ const booksSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  cover: {
-    type: String,
-    required: true,
-  },
   pages: {
     type: Number,
     required: true,
   },
+  summary: {
+    type: String,
+    required: true,
+  },
   stocks: {
-    type: number,
+    type: Number,
     required: true,
   },
   createdAt: {
