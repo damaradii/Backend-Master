@@ -9,8 +9,8 @@ exports.errorHandling = (err, req, res, next) => {
   }
 
   if (err?.name === errorName.NOT_FOUND) {
-    res.status(400).json({
-      message: err?.message ?? "bad request",
+    res.status(404).json({
+      message: err?.message ?? "not found",
     });
     return;
   }
