@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const authorSchema = new mongoose.Schema(
+const borrowerSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -10,8 +10,9 @@ const authorSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    photoUrl: {
-      type: String,
+    joinAt: {
+      type: Date,
+      required: true,
     },
     deletedAt: {
       type: Date,
@@ -24,6 +25,6 @@ const authorSchema = new mongoose.Schema(
   }
 );
 
-const authorModels = mongoose.model("authors", authorSchema);
+const borrowerModels = mongoose.model("borrowers", borrowerSchema);
 
-module.exports = authorModels;
+module.exports = borrowerModels;

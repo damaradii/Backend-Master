@@ -16,8 +16,6 @@ AuthorController.create = async (req, res, next) => {
     const author = new Authors({
       name,
       email,
-      createdAt: new Date(),
-      updatedAt: new Date(),
       deletedAt: null,
     });
 

@@ -5,9 +5,9 @@ const BooksController = {};
 
 BooksController.create = async (req, res, next) => {
   try {
-    const { title, pages, summary, stocks } = req.body;
+    const { title, pages, summary, stocks, authorId, categories } = req.body;
     //cek falsy input
-    if (!title || !pages || !summary || !stocks) {
+    if (!title || !pages || !summary || !stocks || !authorId || !categories) {
       // bad request
       throw {
         name: errorName.BAD_REQUEST,
@@ -17,11 +17,11 @@ BooksController.create = async (req, res, next) => {
 
     const book = new Books({
       title,
-      pages,
       summary,
+      pages,
+      categories,
+      authorId,
       stocks,
-      createdAt: new Date(),
-      updatedAt: new Date(),
       deletedAt: null,
     });
 
@@ -92,9 +92,10 @@ BooksController.getById = async (req, res, next) => {
 
 BooksController.putById = async (req, res, next) => {
   try {
-    const { title, pages, summary, stocks, authorId, imageUrl } = req.body;
-
-    if (!title || !pages || !summary || !stocks || !imageUrl) {
+    const { title, pages, summary, stocks, authorId, categories } = req.body;
+    //cek falsy input
+    if (!title || !pages || !summary || !stocks || !authorId || !categories) {
+      // bad request
       throw {
         name: errorName.BAD_REQUEST,
         message: errorMsg.WRONG_INPUT,

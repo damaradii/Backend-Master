@@ -1,9 +1,9 @@
 const express = require("express");
 const routes = express.Router();
 const BooksController = require("../controllers/booksControllers");
-const BooksModel = require("../models/booksModels");
 const AuthorController = require("../controllers/authorControllers");
-const AuthorsModel = require("../models/authorModels");
+const BorrowerController = require("../controllers/borrowerControllers");
+const CategoryController = require("../controllers/categoryControllers");
 
 // kumpulkan semua routes disini per bagian ex : /author,/books dll
 
@@ -22,5 +22,19 @@ routes.get("/author/:id", AuthorController.getById);
 routes.put("/author/:id", AuthorController.putById);
 routes.delete("/author/:id", AuthorController.deleteById);
 routes.post("/author/upload/:id", AuthorController.upload);
+
+// borrower
+routes.post("/borrower/", BorrowerController.create);
+routes.get("/borrowers/", BorrowerController.getAll);
+routes.get("/borrower/:id", BorrowerController.getById);
+routes.put("/borrower/:id", BorrowerController.putById);
+routes.delete("/borrower/:id", BorrowerController.deleteById);
+
+// borrower
+routes.post("/xategory/", CategoryController.create);
+routes.get("/categories/", CategoryController.getAll);
+routes.get("/xategory/:id", CategoryController.getById);
+routes.put("/xategory/:id", CategoryController.putById);
+routes.delete("/xategory/:id", CategoryController.deleteById);
 
 module.exports = routes;
