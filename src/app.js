@@ -13,10 +13,6 @@ connectDB();
 
 app.use(express.json());
 
-//cara menggunakannya
-// /api/v1/books
-// /api/v1/authors
-// dst
 app.use("/api/v1", routes);
 app.use(errorHandling);
 

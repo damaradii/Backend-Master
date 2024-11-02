@@ -6,6 +6,7 @@ const errorName = {
 const errorMsg = {
   WRONG_INPUT: "wrong input",
   BOOK_NOT_FOUND: "Book Not Found",
+  AUTHOR_NOT_FOUND: "Author Not Found",
 };
 
 module.exports = {

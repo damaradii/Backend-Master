@@ -32,6 +32,34 @@ BooksController.create = async (req, res, next) => {
   }
 };
 
+BooksController.upload = async (req, res, next) => {
+  try {
+    const { imageUrl } = req.body;
+    if (!imageUrl) {
+      throw {
+        name: errorName.BAD_REQUEST,
+        message: errorMsg.WRONG_INPUT,
+      };
+    }
+
+    const uploadBooksUrl = await Books.findByIdAndUpdate(
+      req.params.id,
+      { $set: { imageUrl } },
+      { new: true }
+    );
+
+    if (!uploadBooksUrl) {
+      throw {
+        name: errorName.NOT_FOUND,
+        message: errorMsg.BOOK_NOT_FOUND,
+      };
+    }
+    res.status(200).json(uploadBooksUrl);
+  } catch (error) {
+    next(error);
+  }
+};
+
 BooksController.getAll = async (req, res, next) => {
   try {
     const getBooks = await Books.find();
@@ -64,9 +92,9 @@ BooksController.getById = async (req, res, next) => {
 
 BooksController.putById = async (req, res, next) => {
   try {
-    const { title, pages, summary, stocks } = req.body;
+    const { title, pages, summary, stocks, authorId, imageUrl } = req.body;
 
-    if (!title || !pages || !summary || !stocks) {
+    if (!title || !pages || !summary || !stocks || !imageUrl) {
       throw {
         name: errorName.BAD_REQUEST,
         message: errorMsg.WRONG_INPUT,

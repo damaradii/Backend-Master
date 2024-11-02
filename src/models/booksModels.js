@@ -5,6 +5,9 @@ const booksSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  imageUrl: {
+    type: String,
+  },
   pages: {
     type: Number,
     required: true,
@@ -16,6 +19,11 @@ const booksSchema = new mongoose.Schema({
   stocks: {
     type: Number,
     required: true,
+  },
+  authorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "authors",
+    required: false,
   },
   createdAt: {
     type: Date,
@@ -33,5 +41,4 @@ const booksSchema = new mongoose.Schema({
 });
 
 const booksModel = mongoose.model("books", booksSchema);
-
 module.exports = booksModel;
