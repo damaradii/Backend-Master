@@ -12,6 +12,7 @@ const borrowerSchema = new mongoose.Schema(
     },
     joinAt: {
       type: Date,
+      default: Date,
       required: true,
     },
     deletedAt: {

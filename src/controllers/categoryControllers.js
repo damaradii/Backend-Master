@@ -92,7 +92,8 @@ CategoryController.deleteById = async (req, res, next) => {
         message: errorMsg.CATEGORY_NOT_FOUND,
       };
     }
-    res.status(200).json(deleteCategory);
+    const result = { message: "Delete Success" };
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }

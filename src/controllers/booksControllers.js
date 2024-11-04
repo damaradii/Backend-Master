@@ -14,7 +14,6 @@ BooksController.create = async (req, res, next) => {
         message: errorMsg.WRONG_INPUT,
       };
     }
-
     const book = new Books({
       title,
       summary,
@@ -54,7 +53,7 @@ BooksController.upload = async (req, res, next) => {
         message: errorMsg.BOOK_NOT_FOUND,
       };
     }
-    res.status(200).json(uploadBooksUrl);
+    res.status(201).json(uploadBooksUrl);
   } catch (error) {
     next(error);
   }
@@ -69,7 +68,7 @@ BooksController.getAll = async (req, res, next) => {
         message: errorMsg.BOOK_NOT_FOUND,
       };
     }
-    res.json(getBooks);
+    res.status(200).json(getBooks);
   } catch (error) {
     next(error);
   }
@@ -84,7 +83,7 @@ BooksController.getById = async (req, res, next) => {
         message: errorMsg.BOOK_NOT_FOUND,
       };
     }
-    res.json(getBookId);
+    res.status(200).json(getBookId);
   } catch (error) {
     next(error);
   }

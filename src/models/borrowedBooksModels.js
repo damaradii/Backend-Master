@@ -2,25 +2,30 @@ const mongoose = require("mongoose");
 
 const borroweedBooksSchema = new mongoose.Schema(
   {
-    bookId: {
-      type: String,
-      required: true,
-    },
     borrowerId: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
     },
+    bookId: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+      },
+    ],
     borrowedAt: {
-      type: String,
-      default: Date,
+      type: Date,
       required: true,
+    },
+    lateFee: {
+      type: Number,
+      require: false,
     },
     expectReturnAt: {
-      type: String,
+      type: Date,
       required: true,
     },
     returnAt: {
-      type: String,
+      type: Date,
       require: false,
     },
   },
@@ -30,7 +35,7 @@ const borroweedBooksSchema = new mongoose.Schema(
 );
 
 const borrowedBooksModels = mongoose.model(
-  "borrowedBooks",
+  "BorrowedBooks",
   borroweedBooksSchema
 );
 

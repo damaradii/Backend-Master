@@ -4,6 +4,7 @@ const BooksController = require("../controllers/booksControllers");
 const AuthorController = require("../controllers/authorControllers");
 const BorrowerController = require("../controllers/borrowerControllers");
 const CategoryController = require("../controllers/categoryControllers");
+const BorrowedBookscontroller = require("../controllers/borrowedBooksControllers");
 
 // kumpulkan semua routes disini per bagian ex : /author,/books dll
 
@@ -30,11 +31,16 @@ routes.get("/borrower/:id", BorrowerController.getById);
 routes.put("/borrower/:id", BorrowerController.putById);
 routes.delete("/borrower/:id", BorrowerController.deleteById);
 
-// borrower
+// categories
 routes.post("/xategory/", CategoryController.create);
 routes.get("/categories/", CategoryController.getAll);
 routes.get("/xategory/:id", CategoryController.getById);
 routes.put("/xategory/:id", CategoryController.putById);
 routes.delete("/xategory/:id", CategoryController.deleteById);
 
+//borrowed
+routes.post("/borrow/book/", BorrowedBookscontroller.createBorrower);
+routes.post("/borrow/book/return/:id", BorrowedBookscontroller.createBorrowed);
+routes.get("/borrow/book/list", BorrowedBookscontroller.getAll);
+routes.get("/borrow/book/", BorrowedBookscontroller.get);
 module.exports = routes;

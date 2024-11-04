@@ -5,7 +5,7 @@ const BorrowerController = {};
 
 BorrowerController.create = async (req, res, next) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, joinAt } = req.body;
     if (!name || !email) {
       throw {
         name: errorName.BAD_REQUEST,
@@ -16,7 +16,7 @@ BorrowerController.create = async (req, res, next) => {
     const borrower = new Borrowers({
       name,
       email,
-      joinAt: newDate(),
+      joinAt,
       deletedAt: null,
     });
 
@@ -95,7 +95,8 @@ BorrowerController.deleteById = async (req, res, next) => {
         message: errorMsg.BORROWER_NOT_FOUND,
       };
     }
-    res.status(200).json(deleteBorrower);
+    const result = { message: "Delete Success" };
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
