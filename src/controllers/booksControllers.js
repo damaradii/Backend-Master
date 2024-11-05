@@ -5,7 +5,9 @@ const mongoose = require("mongoose");
 const BooksController = {};
 
 BooksController.create = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
     const {
       title,
       pages,
@@ -32,14 +34,17 @@ BooksController.create = async (req, res, next) => {
       stocks,
       deletedAt: null,
     });
-
-    await book.save();
+    await session.commitTransaction();
+    await book.save({ session });
     res.status(201).json({
       message: "created",
       data: { Books: book },
     });
   } catch (error) {
+    await session.abortTransaction();
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 

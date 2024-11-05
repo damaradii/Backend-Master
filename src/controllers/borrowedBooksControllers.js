@@ -1,11 +1,14 @@
 const BorrowedBooks = require("../models/borrowedBooksModels");
 const Books = require("../models/booksModels");
 const { errorMsg, errorName } = require("../utils");
+const mongoose = require("mongoose");
 
 const BorrowedBookscontroller = {};
 
 BorrowedBookscontroller.createBorrower = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
     const { bookId, borrowerId, expectReturnAt } = req.body;
     if (!bookId || !borrowerId || !expectReturnAt) {
       throw {
@@ -43,7 +46,7 @@ BorrowedBookscontroller.createBorrower = async (req, res, next) => {
       }
 
       book.stocks = book.stocks - 1;
-      await book.save();
+      await book.save({ session });
     }
 
     const borrowed = new BorrowedBooks({
@@ -54,14 +57,17 @@ BorrowedBookscontroller.createBorrower = async (req, res, next) => {
       returnAt: null,
       createBorrower: true,
     });
-
-    await borrowed.save();
+    await session.commitTransaction();
+    await borrowed.save({ session });
     res.status(201).json({
       message: "created",
       data: { BorrowedBooks: borrowed },
     });
   } catch (error) {
+    await session.abortTransaction();
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 
@@ -82,7 +88,9 @@ BorrowedBookscontroller.getAll = async (req, res, next) => {
 };
 
 BorrowedBookscontroller.createBorrowed = async (req, res, next) => {
+  const session = await mongoose.startSession();
   try {
+    session.startTransaction();
     const { returnAt, id } = req.body;
     const input = returnAt ? new Date(returnAt) : new Date();
 
@@ -97,7 +105,7 @@ BorrowedBookscontroller.createBorrowed = async (req, res, next) => {
       };
     }
 
-    const data = await BorrowedBooks.findById(id); // Menggunakan ID dari body
+    const data = await BorrowedBooks.findById(id);
     if (!data) {
       throw {
         name: errorName.NOT_FOUND,
@@ -116,7 +124,7 @@ BorrowedBookscontroller.createBorrowed = async (req, res, next) => {
     }
 
     const createretuned = await BorrowedBooks.findByIdAndUpdate(
-      id, // Menggunakan ID yang benar
+      id,
       { returnAt: input, lateFee },
       { new: true }
     );
@@ -127,10 +135,16 @@ BorrowedBookscontroller.createBorrowed = async (req, res, next) => {
         message: errorMsg.BOOK_NOT_FOUND,
       };
     }
-
-    res.status(201).json(createretuned);
+    await session.commitTransaction();
+    res.status(201).json({
+      message: "created",
+      data: { BorrowedBooks: createretuned },
+    });
   } catch (error) {
+    await session.abortTransaction();
     next(error);
+  } finally {
+    session.endSession();
   }
 };
 
