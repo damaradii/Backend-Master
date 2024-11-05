@@ -1,11 +1,12 @@
 const BorrowedBooks = require("../models/borrowedBooksModels");
+const Books = require("../models/booksModels");
 const { errorMsg, errorName } = require("../utils");
 
 const BorrowedBookscontroller = {};
 
 BorrowedBookscontroller.createBorrower = async (req, res, next) => {
   try {
-    const { bookId, borrowerId, expectReturnAt, borrowedAt } = req.body;
+    const { bookId, borrowerId, expectReturnAt } = req.body;
     if (!bookId || !borrowerId || !expectReturnAt) {
       throw {
         name: errorName.BAD_REQUEST,
@@ -24,18 +25,41 @@ BorrowedBookscontroller.createBorrower = async (req, res, next) => {
         name: errorName.BAD_REQUEST,
         message: "Invalid date format for expectReturnAt",
       };
+    } else if (date.getTime() < Date.now()) {
+      throw {
+        name: errorName.BAD_REQUEST,
+        message: "Cannot rent because expectReturn is past dates",
+      };
+    }
+
+    for (const id of bookId) {
+      const book = await Books.findOne({ _id: id });
+
+      if (book.stocks <= 0) {
+        throw {
+          name: errorName.BAD_REQUEST,
+          message: "No stock",
+        };
+      }
+
+      book.stocks = book.stocks - 1;
+      await book.save();
     }
 
     const borrowed = new BorrowedBooks({
-      borrowerId,
-      bookId,
+      borrowerId: borrowerId,
+      bookId: bookId,
       borrowedAt: new Date(),
       expectReturnAt: date,
+      returnAt: null,
       createBorrower: true,
     });
 
     await borrowed.save();
-    res.status(201).json(borrowed);
+    res.status(201).json({
+      message: "created",
+      data: { BorrowedBooks: borrowed },
+    });
   } catch (error) {
     next(error);
   }
@@ -44,19 +68,14 @@ BorrowedBookscontroller.createBorrower = async (req, res, next) => {
 BorrowedBookscontroller.getAll = async (req, res, next) => {
   try {
     const getBorrowedBooks = await BorrowedBooks.find({
-      returnAt: { $exists: false },
+      returnAt: null,
+    })
+      .populate("borrowerId", "_id name")
+      .populate("bookId", "_id title");
+    res.status(200).json({
+      message: "ok",
+      data: { BorrowedBooks: getBorrowedBooks },
     });
-    res.status(200).json(getBorrowedBooks);
-  } catch (error) {
-    next(error);
-  }
-};
-
-BorrowedBookscontroller.get = async (req, res, next) => {
-  try {
-    const getBorrowedBooks = await BorrowedBooks.find();
-
-    res.status(200).json(getBorrowedBooks);
   } catch (error) {
     next(error);
   }
@@ -64,7 +83,7 @@ BorrowedBookscontroller.get = async (req, res, next) => {
 
 BorrowedBookscontroller.createBorrowed = async (req, res, next) => {
   try {
-    const { returnAt } = req.body;
+    const { returnAt, id } = req.body;
     const input = returnAt ? new Date(returnAt) : new Date();
 
     function isValidDate(input) {
@@ -74,23 +93,31 @@ BorrowedBookscontroller.createBorrowed = async (req, res, next) => {
     if (!isValidDate(input)) {
       throw {
         name: errorName.BAD_REQUEST,
-        message: "Invalid date format for expectReturnAt",
+        message: "Invalid date format for returnAt",
       };
     }
 
-    const data = await BorrowedBooks.findById(req.params.id);
-    const expectReturnAt = data.expectReturnAt;
+    const data = await BorrowedBooks.findById(id); // Menggunakan ID dari body
+    if (!data) {
+      throw {
+        name: errorName.NOT_FOUND,
+        message: errorMsg.BOOK_NOT_FOUND,
+      };
+    }
 
+    const expectReturnAt = data.expectReturnAt;
+    const bookCount = data.bookId.length;
     let lateFee = 0;
+
     if (input > expectReturnAt) {
       const lateDays = (input - expectReturnAt) / (1000 * 60 * 60 * 24);
       const feePerDay = 5000;
-      lateFee = lateDays * feePerDay;
+      lateFee = lateDays * feePerDay * bookCount;
     }
 
     const createretuned = await BorrowedBooks.findByIdAndUpdate(
-      req.params.id,
-      { $set: { returnAt: input, lateFee } },
+      id, // Menggunakan ID yang benar
+      { returnAt: input, lateFee },
       { new: true }
     );
 
@@ -100,6 +127,7 @@ BorrowedBookscontroller.createBorrowed = async (req, res, next) => {
         message: errorMsg.BOOK_NOT_FOUND,
       };
     }
+
     res.status(201).json(createretuned);
   } catch (error) {
     next(error);

@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 
 const booksSchema = new mongoose.Schema(
   {
+    _id: {
+      type: mongoose.Types.ObjectId,
+    },
     title: {
       type: String,
       required: true,
@@ -21,7 +24,7 @@ const booksSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    categories: [
+    categoryId: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "categories",
@@ -37,6 +40,10 @@ const booksSchema = new mongoose.Schema(
       type: Date,
       required: false,
       default: null,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {

@@ -4,11 +4,13 @@ const borroweedBooksSchema = new mongoose.Schema(
   {
     borrowerId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "borrowers",
       required: true,
     },
     bookId: [
       {
         type: mongoose.Schema.Types.ObjectId,
+        ref: "books",
         required: true,
       },
     ],

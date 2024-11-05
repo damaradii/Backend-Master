@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 
 const categorySchema = new mongoose.Schema(
   {
+    _id: {
+      type: mongoose.Types.ObjectId,
+    },
     name: {
       type: String,
       required: true,
@@ -9,6 +12,10 @@ const categorySchema = new mongoose.Schema(
     deleteAt: {
       type: Date,
       default: null,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {

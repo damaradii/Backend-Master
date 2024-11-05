@@ -1,13 +1,21 @@
 const Books = require("../models/booksModels");
 const { errorMsg, errorName } = require("../utils");
+const mongoose = require("mongoose");
 
 const BooksController = {};
 
 BooksController.create = async (req, res, next) => {
   try {
-    const { title, pages, summary, stocks, authorId, categories } = req.body;
+    const {
+      title,
+      pages,
+      summary,
+      stocks = 0,
+      authorId,
+      categoryId = [],
+    } = req.body;
     //cek falsy input
-    if (!title || !pages || !summary || !stocks || !authorId || !categories) {
+    if (!title || !pages || !summary || !stocks || !authorId || !categoryId) {
       // bad request
       throw {
         name: errorName.BAD_REQUEST,
@@ -15,17 +23,21 @@ BooksController.create = async (req, res, next) => {
       };
     }
     const book = new Books({
+      _id: new mongoose.Types.ObjectId(),
       title,
       summary,
       pages,
-      categories,
-      authorId,
+      categoryId: categoryId,
+      authorId: authorId,
       stocks,
       deletedAt: null,
     });
 
     await book.save();
-    res.status(201).json(book);
+    res.status(201).json({
+      message: "created",
+      data: { Books: book },
+    });
   } catch (error) {
     next(error);
   }
@@ -33,19 +45,15 @@ BooksController.create = async (req, res, next) => {
 
 BooksController.upload = async (req, res, next) => {
   try {
-    const { imageUrl } = req.body;
-    if (!imageUrl) {
+    const { imageUrl, id } = req.body;
+    if (!imageUrl || !id) {
       throw {
         name: errorName.BAD_REQUEST,
         message: errorMsg.WRONG_INPUT,
       };
     }
 
-    const uploadBooksUrl = await Books.findByIdAndUpdate(
-      req.params.id,
-      { $set: { imageUrl } },
-      { new: true }
-    );
+    const uploadBooksUrl = await Books.findByIdAndUpdate(id, { imageUrl });
 
     if (!uploadBooksUrl) {
       throw {
@@ -53,7 +61,10 @@ BooksController.upload = async (req, res, next) => {
         message: errorMsg.BOOK_NOT_FOUND,
       };
     }
-    res.status(201).json(uploadBooksUrl);
+    res.status(201).json({
+      message: "created",
+      data: { Books: uploadBooksUrl },
+    });
   } catch (error) {
     next(error);
   }
@@ -61,14 +72,19 @@ BooksController.upload = async (req, res, next) => {
 
 BooksController.getAll = async (req, res, next) => {
   try {
-    const getBooks = await Books.find();
+    const getBooks = await Books.find({ isDeleted: false })
+      .populate("authorId", "_id name")
+      .populate("categoryId", "_id name");
     if (!getBooks) {
       throw {
         name: errorName.NOT_FOUND,
         message: errorMsg.BOOK_NOT_FOUND,
       };
     }
-    res.status(200).json(getBooks);
+    res.status(200).json({
+      message: "ok",
+      data: { Books: getBooks },
+    });
   } catch (error) {
     next(error);
   }
@@ -76,14 +92,24 @@ BooksController.getAll = async (req, res, next) => {
 
 BooksController.getById = async (req, res, next) => {
   try {
-    const getBookId = await Books.findById(req.params.id);
+    const getBookId = await Books.findOne({
+      _id: req.params.id,
+      isDeleted: false,
+    })
+      .populate("authorId", "_id name")
+      .populate("categoryId", "_id name");
+
     if (!getBookId) {
       throw {
         name: errorName.NOT_FOUND,
         message: errorMsg.BOOK_NOT_FOUND,
       };
     }
-    res.status(200).json(getBookId);
+
+    res.status(200).json({
+      message: "ok",
+      data: { Books: getBookId },
+    });
   } catch (error) {
     next(error);
   }
@@ -91,21 +117,41 @@ BooksController.getById = async (req, res, next) => {
 
 BooksController.putById = async (req, res, next) => {
   try {
-    const { title, pages, summary, stocks, authorId, categories } = req.body;
+    const {
+      title,
+      pages,
+      summary,
+      stocks,
+      authorId,
+      categoryId,
+      id,
+      imageUrl,
+    } = req.body;
     //cek falsy input
-    if (!title || !pages || !summary || !stocks || !authorId || !categories) {
-      // bad request
+    if (
+      !title ||
+      !pages ||
+      !summary ||
+      !stocks ||
+      !authorId ||
+      !categoryId ||
+      !id
+    ) {
       throw {
         name: errorName.BAD_REQUEST,
         message: errorMsg.WRONG_INPUT,
       };
     }
 
-    const updateBook = await Books.findByIdAndUpdate(
-      { _id: req.params.id },
-      { $set: req.body },
-      { new: true }
-    );
+    const updateBook = await Books.findByIdAndUpdate(id, {
+      title,
+      pages,
+      summary,
+      stocks,
+      imageUrl,
+      authorId,
+      categoryId,
+    });
 
     if (!updateBook) {
       throw {
@@ -113,7 +159,10 @@ BooksController.putById = async (req, res, next) => {
         message: errorMsg.BOOK_NOT_FOUND,
       };
     }
-    res.status(200).json(updateBook);
+    res.status(200).json({
+      message: "Book updated successfully",
+      data: updateBook,
+    });
   } catch (error) {
     next(error);
   }
@@ -121,15 +170,32 @@ BooksController.putById = async (req, res, next) => {
 
 BooksController.deleteById = async (req, res, next) => {
   try {
-    const deleteBook = await Books.findByIdAndDelete({ _id: req.params.id });
+    const { id } = req.params;
+    if (!id) {
+      throw {
+        name: errorName.BAD_REQUEST,
+        message: errorMsg.WRONG_INPUT,
+      };
+    }
+    const deleteBook = await Books.findOneAndUpdate(
+      {
+        _id: id,
+        isDeleted: false,
+      },
+      {
+        isDeleted: true,
+        deletedAt: new Date(),
+      }
+    );
     if (!deleteBook) {
       throw {
         name: errorName.NOT_FOUND,
         message: errorMsg.BOOK_NOT_FOUND,
       };
     }
-    const result = { message: "Delete Success" };
-    res.status(200).json(result);
+    res.status(200).json({
+      message: "Deleted successfully",
+    });
   } catch (error) {
     next(error);
   }

@@ -1,5 +1,6 @@
 const Authors = require("../models/authorModels");
 const { errorMsg, errorName } = require("../utils");
+const mongoose = require("mongoose");
 
 const AuthorController = {};
 
@@ -14,13 +15,17 @@ AuthorController.create = async (req, res, next) => {
     }
 
     const author = new Authors({
+      _id: new mongoose.Types.ObjectId(),
       name,
       email,
       deletedAt: null,
     });
 
     await author.save();
-    res.status(201).json(author);
+    res.status(201).json({
+      message: "created",
+      data: { Authors: author },
+    });
   } catch (error) {
     next(error);
   }
@@ -28,27 +33,26 @@ AuthorController.create = async (req, res, next) => {
 
 AuthorController.upload = async (req, res, next) => {
   try {
-    const { photoUrl } = req.body;
-    if (!photoUrl) {
+    const { photoUrl, id } = req.body;
+    if (!photoUrl || !id) {
       throw {
         name: errorName.BAD_REQUEST,
         message: errorMsg.WRONG_INPUT,
       };
     }
 
-    const uploadphotoUrl = await Authors.findByIdAndUpdate(
-      req.params.id,
-      { $set: { photoUrl } },
-      { new: true }
-    );
+    const uploadphotoUrl = await Authors.findByIdAndUpdate(id, { photoUrl });
 
     if (!uploadphotoUrl) {
       throw {
         name: errorName.NOT_FOUND,
-        message: errorMsg.BOOK_NOT_FOUND,
+        message: errorMsg.AUTHOR_NOT_FOUND,
       };
     }
-    res.status(200).json(uploadphotoUrl);
+    res.status(201).json({
+      message: "created",
+      data: { Authors: uploadphotoUrl },
+    });
   } catch (error) {
     next(error);
   }
@@ -56,14 +60,17 @@ AuthorController.upload = async (req, res, next) => {
 
 AuthorController.getAll = async (req, res, next) => {
   try {
-    const getAuthors = await Authors.find();
+    const getAuthors = await Authors.find({ isDeleted: false });
     if (!getAuthors) {
       throw {
         name: errorName.NOT_FOUND,
         message: errorMsg.AUTHOR_NOT_FOUND,
       };
     }
-    res.status(200).json(getAuthors);
+    res.status(200).json({
+      message: "ok",
+      data: { Authors: getAuthors },
+    });
   } catch (error) {
     next(error);
   }
@@ -71,14 +78,20 @@ AuthorController.getAll = async (req, res, next) => {
 
 AuthorController.getById = async (req, res, next) => {
   try {
-    const getAuthorId = await Authors.findById(req.params.id);
+    const getAuthorId = await Authors.findOne({
+      _id: req.params.id,
+      isDeleted: false,
+    });
     if (!getAuthorId) {
       throw {
         name: errorName.NOT_FOUND,
         message: errorMsg.AUTHOR_NOT_FOUND,
       };
     }
-    res.status(200).json(getAuthorId);
+    res.status(200).json({
+      message: "ok",
+      data: { Authors: getAuthorId },
+    });
   } catch (error) {
     next(error);
   }
@@ -86,26 +99,29 @@ AuthorController.getById = async (req, res, next) => {
 
 AuthorController.putById = async (req, res, next) => {
   try {
-    const { name, email, photoUrl } = req.body;
+    const { name, email, photoUrl, id } = req.body;
 
-    if (!name || !email || !photoUrl) {
+    if (!id || !email || !name) {
       throw {
         name: errorName.BAD_REQUEST,
         message: errorMsg.WRONG_INPUT,
       };
     }
-    const updateAuthor = await Authors.findByIdAndUpdate(
-      { _id: req.params.id },
-      { $set: req.body },
-      { new: true }
-    );
+    const updateAuthor = await Authors.findByIdAndUpdate(id, {
+      name,
+      email,
+      photoUrl,
+    });
     if (!updateAuthor) {
       throw {
         name: errorName.NOT_FOUND,
         message: errorMsg.AUTHOR_NOT_FOUND,
       };
     }
-    res.status(201).json(updateAuthor);
+    res.status(200).json({
+      message: "Author updated successfully",
+      data: updateAuthor,
+    });
   } catch (error) {
     next(error);
   }
@@ -113,16 +129,32 @@ AuthorController.putById = async (req, res, next) => {
 
 AuthorController.deleteById = async (req, res, next) => {
   try {
-    const deleteAuthor = await Authors.findByIdAndDelete({
-      _id: req.params.id,
-    });
+    const { id } = req.params;
+    if (!id) {
+      throw {
+        name: errorName.BAD_REQUEST,
+        message: errorMsg.WRONG_INPUT,
+      };
+    }
+
+    const deleteAuthor = await Authors.findOneAndUpdate(
+      {
+        _id: id,
+        isDeleted: false,
+      },
+      {
+        isDeleted: true,
+      }
+    );
     if (!deleteAuthor) {
       throw {
         name: errorName.NOT_FOUND,
         message: errorMsg.AUTHOR_NOT_FOUND,
       };
     }
-    res.status(200).json(deleteAuthor);
+    res.status(200).json({
+      message: "Deleted successfully",
+    });
   } catch (error) {
     next(error);
   }

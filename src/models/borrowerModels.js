@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 
 const borrowerSchema = new mongoose.Schema(
   {
+    _id: {
+      type: mongoose.Types.ObjectId,
+    },
     name: {
       type: String,
       required: true,
@@ -19,6 +22,10 @@ const borrowerSchema = new mongoose.Schema(
       type: Date,
       required: false,
       default: null,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {
